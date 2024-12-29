@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: kuckuc_postgres
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-kuckuc}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kuckuc_password}
+      POSTGRES_DB: ${DB_NAME:-kuckuc_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+      - ./backend/migrations:/docker-entrypoint-initdb.d    # Исправили путь к миграциям
+    networks:
+      - kuckuc-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-kuckuc} -d ${DB_NAME:-kuckuc_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    stop_grace_period: 1m
+
+  backend:
+    container_name: kuckuc_backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-kuckuc}
+      DB_PASSWORD: ${DB_PASSWORD:-kuckuc_password}
+      DB_NAME: ${DB_NAME:-kuckuc_db}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_change_this_in_production}
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    networks:
+      - kuckuc-network
+    restart: unless-stopped
+
+networks:
+  kuckuc-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
