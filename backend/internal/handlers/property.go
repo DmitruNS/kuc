@@ -6,7 +6,9 @@ import (
     "net/http"
     "strconv"
 	"fmt"
+	"log"
 	"time"
+	"io"
     "github.com/gin-gonic/gin"
     "kuckuc/internal/services"
     "kuckuc/internal/models"
@@ -74,19 +76,27 @@ func (h *PropertyHandlers) GetProperty(c *gin.Context) {
 func (h *PropertyHandlers) CreateProperty(c *gin.Context) {
     var property models.Property
     if err := c.ShouldBindJSON(&property); err != nil {
+        // Добавляем детальное логирование
+        log.Printf("Error binding JSON: %v", err)
+        // Логируем тело запроса
+        body, _ := io.ReadAll(c.Request.Body)
+        log.Printf("Request body: %s", string(body))
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     userID := c.GetUint("userID")
+    log.Printf("Creating property with data: %+v", property)
     
     if err := h.propertyService.CreateProperty(&property, userID); err != nil {
+        log.Printf("Error creating property: %v", err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
     c.JSON(http.StatusCreated, property)
 }
+
 
 // UpdateProperty godoc
 func (h *PropertyHandlers) UpdateProperty(c *gin.Context) {

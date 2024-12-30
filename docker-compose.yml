@@ -30,6 +30,8 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
+    volumes:
+      - ./backend/uploads:/app/uploads
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -38,8 +40,13 @@ services:
       DB_NAME: ${DB_NAME:-kuckuc_db}
       SERVER_PORT: ${SERVER_PORT:-8080}
       JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_change_this_in_production}
-    volumes:
-      - ./backend/uploads:/app/uploads
+      UPLOAD_DIR: "/app/uploads"
+    command: >
+      sh -c "
+        mkdir -p /app/uploads &&
+        chmod 777 /app/uploads &&
+        ./kuckuc-server
+      "
     depends_on:
       postgres:
         condition: service_healthy

@@ -16,7 +16,9 @@ import (
 type FileService struct {
     uploadDir string
 }
-
+func (s *FileService) GetUploadDir() string {
+    return s.uploadDir
+}
 
 func NewFileService(uploadDir string) *FileService {
     return &FileService{

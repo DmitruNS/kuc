@@ -8,7 +8,7 @@ import (
 	"kuckuc/internal/models"
 	"math/rand"
 	"time"
-
+"log"
 	"gorm.io/gorm"
 )
 
@@ -112,7 +112,7 @@ func (s *PropertyService) ListProperties(filter PropertyFilter, language string)
 
 func (s *PropertyService) GetProperty(id uint, language string) (*models.Property, error) {
 	var property models.Property
-
+    log.Printf("Attempting to fetch property ID: %d", id)
 	if err := s.db.Preload("Details").
 		First(&property, id).Error; err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (s *PropertyService) GetProperty(id uint, language string) (*models.Propert
 		Find(&documents).Error; err == nil {
 		property.Documents = documents
 	}
-
+    log.Printf("Property loaded: %+v", property)
 	return &property, nil
 }
 
@@ -200,33 +200,33 @@ func (s *PropertyService) ExportProperties(filter PropertyFilter) ([]byte, error
 }
 
 func (s *PropertyService) AddDocument(document *models.Document) error {
-	return s.db.Table("property_documents").Create(document).Error
+    return s.db.Table("property_documents").Create(document).Error
 }
 
 func (s *PropertyService) GetDocument(id uint) (*models.Document, error) {
-	var document models.Document
-	if err := s.db.Table("property_documents").First(&document, id).Error; err != nil {
-		return nil, err
-	}
-	return &document, nil
+    var document models.Document
+    if err := s.db.Table("property_documents").First(&document, id).Error; err != nil {
+        return nil, err
+    }
+    return &document, nil
 }
 
 func (s *PropertyService) DeleteDocument(id uint) error {
-	return s.db.Table("property_documents").Delete(&models.Document{}, id).Error
+    return s.db.Table("property_documents").Delete(&models.Document{}, id).Error
 }
 
 func (s *PropertyService) UpdateDocumentVisibility(fileID uint, propertyID uint, isPublic bool) error {
-	result := s.db.Table("property_documents").
-		Where("id = ? AND property_id = ?", fileID, propertyID).
-		Update("is_public", isPublic)
+    result := s.db.Table("property_documents").
+        Where("id = ? AND property_id = ?", fileID, propertyID).
+        Update("is_public", isPublic)
 
-	if result.Error != nil {
-		return result.Error
-	}
+    if result.Error != nil {
+        return result.Error
+    }
 
-	if result.RowsAffected == 0 {
-		return fmt.Errorf("document not found or does not belong to property")
-	}
+    if result.RowsAffected == 0 {
+        return fmt.Errorf("document not found or does not belong to property")
+    }
 
-	return nil
+    return nil
 }

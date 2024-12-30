@@ -4,7 +4,10 @@ package handlers
 
 import (
 	"kuckuc/internal/services"
+	"log"
 	"net/http"
+
+	//	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -30,67 +33,76 @@ func NewFileHandlers(fileService *services.FileService, propertyService *service
 // @Tags files
 // @Accept multipart/form-data
 // @Produce json
-// @Param property_id path int true "Property ID"
+// @Param id path int true "Property ID" // Изменено с property_id на id
 // @Param file_type query string true "File type (image, video, document)"
 // @Param is_public query bool false "Is file public"
 // @Param file formData file true "File to upload"
 // @Success 200 {object} map[string]string
 // @Router /properties/{property_id}/files [post]
 // @Security Bearer
+
 func (h *FileHandlers) UploadFile(c *gin.Context) {
-	propertyID, err := strconv.ParseUint(c.Param("property_id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid property id"})
-		return
-	}
+    // Добавим отладочный вывод
+    log.Printf("Received id param: %s", c.Param("id"))
+    
+    propertyID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+    if err != nil || propertyID == 0 {
+        log.Printf("Error parsing property ID: %v, raw value: %s", err, c.Param("id"))
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid property id"})
+        return
+    }
 
-	fileType := services.FileType(c.Query("file_type"))
-	if fileType != services.FileTypeImage &&
-		fileType != services.FileTypeVideo &&
-		fileType != services.FileTypeDocument {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
-		return
-	}
+    // Получаем файл
+    file, err := c.FormFile("file")
+    if err != nil {
+        log.Printf("Error getting file from form: %v", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "no file uploaded"})
+        return
+    }
 
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no file uploaded"})
-		return
-	}
+    // Проверяем тип файла из query параметров
+    fileType := services.FileType(c.Query("file_type"))
+    if fileType != services.FileTypeImage &&
+        fileType != services.FileTypeVideo &&
+        fileType != services.FileTypeDocument {
+        log.Printf("Invalid file type: %s", fileType)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
+        return
+    }
 
-	// Validate file type
-	if !h.fileService.ValidateFileType(file.Filename, h.fileService.GetAllowedTypes(fileType)) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file format"})
-		return
-	}
+    // Дополнительная проверка существования property
+    _, err = h.propertyService.GetProperty(uint(propertyID), "en")
+    if err != nil {
+        log.Printf("Property not found: %v", err)
+        c.JSON(http.StatusNotFound, gin.H{"error": "property not found"})
+        return
+    }
 
-	// Save file
-	filePath, err := h.fileService.SaveFile(file, fileType, uint(propertyID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    // Сохраняем файл
+    filePath, err := h.fileService.SaveFile(file, fileType, uint(propertyID))
+    if err != nil {
+        log.Printf("Error saving file: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	// Create document record
-	isPublic := c.DefaultQuery("is_public", "false") == "true"
-	document := models.Document{
-		PropertyID: uint(propertyID),
-		FileType:   string(fileType),
-		FilePath:   filePath,
-		IsPublic:   isPublic,
-	}
+    // Создаем запись о документе
+    isPublic := c.Query("is_public") == "true"
+    document := models.Document{
+        PropertyID: uint(propertyID),
+        FileType:   string(fileType),
+        FilePath:   filePath,
+        IsPublic:   isPublic,
+    }
 
-	if err := h.propertyService.AddDocument(&document); err != nil {
-		// Try to cleanup file if document creation fails
-		_ = h.fileService.DeleteFile(filePath)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    if err := h.propertyService.AddDocument(&document); err != nil {
+        log.Printf("Error adding document to database: %v", err)
+        _ = h.fileService.DeleteFile(filePath) // Очищаем файл при ошибке
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"file_path": filePath,
-		"is_public": isPublic,
-	})
+    c.JSON(http.StatusOK, document)
 }
 
 // DeleteFile godoc
@@ -98,7 +110,7 @@ func (h *FileHandlers) UploadFile(c *gin.Context) {
 // @Description Delete property file
 // @Tags files
 // @Produce json
-// @Param property_id path int true "Property ID"
+// @Param id path int true "Property ID" // Изменено с property_id на id
 // @Param file_id path int true "File ID"
 // @Success 200 {object} map[string]string
 // @Router /properties/{property_id}/files/{file_id} [delete]
@@ -148,7 +160,7 @@ func (h *FileHandlers) DeleteFile(c *gin.Context) {
 // @Tags files
 // @Accept json
 // @Produce json
-// @Param property_id path int true "Property ID"
+// @Param id path int true "Property ID" // Изменено с property_id на id
 // @Param file_id path int true "File ID"
 // @Param is_public body bool true "Public visibility status"
 // @Success 200 {object} map[string]string
