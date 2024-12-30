@@ -1,12 +1,13 @@
-// frontend/src/components/Properties/PropertyList.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Property } from '../../types';
 import PropertyFilters from './PropertyFilters';
+import PropertyDetail from './PropertyDetail';
 import { useTranslation } from '../../localization/translations';
 
 const PropertyList = () => {
     const [properties, setProperties] = useState<Property[]>([]);
+    const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const [language, setLanguage] = useState('ru');
     const t = useTranslation(language);
     const [error, setError] = useState('');
@@ -29,7 +30,6 @@ const PropertyList = () => {
 
     const fetchProperties = async () => {
         try {
-            // Создаем URL с параметрами фильтрации
             const params = new URLSearchParams({
                 language,
                 ...(filters.property_type && { property_type: filters.property_type }),
@@ -99,6 +99,7 @@ const PropertyList = () => {
                     </button>
                 </div>
             </div>
+
             <PropertyFilters filters={filters} onChange={setFilters} />
 
             {error && (
@@ -109,8 +110,11 @@ const PropertyList = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {properties.map((property) => (
-                    <div key={property.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-                        {/* Добавляем контейнер для изображения */}
+                    <div
+                        key={property.id}
+                        className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => setSelectedProperty(property)}
+                    >
                         <div className="w-full h-48 mb-4 bg-gray-100 rounded-lg overflow-hidden">
                             {property.documents && property.documents.length > 0 ? (
                                 <img
@@ -126,12 +130,12 @@ const PropertyList = () => {
                         </div>
 
                         <div className="flex justify-between items-start mb-4">
-
                             <div>
-                                <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mr-2 ${property.deal_type === 'sale'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-green-100 text-green-800'
-                                    }`}>
+                                <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mr-2 ${
+                                    property.deal_type === 'sale'
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'bg-green-100 text-green-800'
+                                }`}>
                                     {t(property.deal_type)}
                                 </span>
                                 <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -155,16 +159,18 @@ const PropertyList = () => {
                             </div>
                             {property.details[0]?.floor_number !== undefined && (
                                 <div className="flex justify-between text-sm">
-                                    <span>Floor:</span>
-                                    <span className="font-medium">{property.details[0]?.floor_number} of {property.details[0]?.total_floors}</span>
+                                    <span>{t('floor')}:</span>
+                                    <span className="font-medium">
+                                        {property.details[0]?.floor_number} {t('of')} {property.details[0]?.total_floors}
+                                    </span>
                                 </div>
                             )}
                         </div>
 
                         <div className="border-t pt-4">
                             <div className="text-2xl font-bold text-indigo-600">
-                                {property.deal_type === 'sale' ? '€' : '€/month'}
-                                {property.details[0]?.price.toLocaleString()}
+                                €{property.details[0]?.price.toLocaleString()}
+                                {property.deal_type === 'rent' && '/month'}
                             </div>
                         </div>
 
@@ -188,8 +194,15 @@ const PropertyList = () => {
 
             {properties.length === 0 && !error && (
                 <div className="text-center py-12 text-gray-500">
-                    No properties found matching your criteria
+                    {t('noPropertiesFound')}
                 </div>
+            )}
+
+            {selectedProperty && (
+                <PropertyDetail 
+                    property={selectedProperty}
+                    onClose={() => setSelectedProperty(null)}
+                />
             )}
         </div>
     );

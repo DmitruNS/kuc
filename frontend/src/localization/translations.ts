@@ -96,7 +96,11 @@ export const translations = {
         uploadedFiles: 'Otpremljeni fajlovi',
         public: 'Javno',
         private: 'Privatno',
-        finish: 'Završi'
+        finish: 'Završi',
+        floor: 'Sprat',
+        of: 'od',
+        description: 'Opis',
+        noPropertiesFound: 'Nisu pronađene nekretnine koje odgovaraju vašim kriterijumima'
     },
     en: {
         // Property types
@@ -193,7 +197,11 @@ export const translations = {
         uploadedFiles: 'Uploaded Files',
         public: 'Public',
         private: 'Private',
-        finish: 'Finish'
+        finish: 'Finish',
+        floor: 'Floor',
+        of: 'of',
+        description: 'Description',
+        noPropertiesFound: 'No properties found matching your criteria'
     },
     ru: {
         // Property types
@@ -290,7 +298,11 @@ export const translations = {
         uploadedFiles: 'Загруженные файлы',
         public: 'Публичный',
         private: 'Приватный',
-            finish: 'Завершить'
+        finish: 'Завершить',
+        floor: 'Этаж',
+        of: 'из',
+        description: 'Описание',
+        noPropertiesFound: 'Не найдено объектов по вашим критериям'
     }
 };
 
