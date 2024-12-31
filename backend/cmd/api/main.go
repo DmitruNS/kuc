@@ -47,7 +47,7 @@ func main() {
 	authService := services.NewAuthService(db)
 	propertyService := services.NewPropertyService(db)
 	fileService := services.NewFileService(os.Getenv("UPLOAD_DIR"))
-	exportService := services.NewExportService(propertyService)
+	exportService := services.NewExportService(propertyService, fileService)
 
 	// Initialize handlers
 	authHandlers := handlers.NewAuthHandlers(authService)
@@ -59,7 +59,7 @@ func main() {
 
 	// Serve static files
 	router.Static("/uploads", "./uploads")
-	
+
 	// CORS middleware
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -92,7 +92,7 @@ func main() {
 			// Property routes
 			protected.POST("/properties", propertyHandlers.CreateProperty)
 			protected.PUT("/properties/:id", propertyHandlers.UpdateProperty)
-			protected.GET("/properties/export", propertyHandlers.ExportProperties)
+			protected.POST("/properties/export", propertyHandlers.ExportProperties)
 			protected.PUT("/properties/:id/status", propertyHandlers.UpdatePropertyStatus)
 
 			// File routes

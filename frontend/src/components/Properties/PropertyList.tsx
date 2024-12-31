@@ -44,7 +44,7 @@ const PropertyList = () => {
             });
 
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/api/properties?${params}`, {
+            const response = await fetch(`https://kuckuc.rs/api/properties?${params}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ const PropertyList = () => {
                         <div className="w-full h-48 mb-4 bg-gray-100 rounded-lg overflow-hidden">
                             {property.documents && property.documents.length > 0 ? (
                                 <img
-                                    src={`http://localhost:8080/uploads/${property.documents[0].file_path}`}
+                                    src={`https://kuckuc.rs/uploads/${property.documents[0].file_path}`}
                                     alt={property.details[0]?.city || 'Property'}
                                     className="w-full h-full object-cover"
                                 />

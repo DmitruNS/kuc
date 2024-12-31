@@ -114,7 +114,7 @@ const PropertyForm = () => {
     const fetchProperty = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/api/properties/${id}`, {
+            const response = await fetch(`https://kuckuc.rs/api/properties/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -134,7 +134,7 @@ const PropertyForm = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(
-                isEditing ? `http://localhost:8080/api/properties/${id}` : 'http://localhost:8080/api/properties',
+                isEditing ? `https://kuckuc.rs/api/properties/${id}` : 'https://kuckuc.rs/api/properties',
                 {
                     method: isEditing ? 'PUT' : 'POST',
                     headers: {

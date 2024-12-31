@@ -36,13 +36,13 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose }) =>
                         <div className="w-full h-96 bg-gray-100 rounded-lg overflow-hidden mb-4">
                             {selectedImage ? (
                                 <img
-                                    src={`http://localhost:8080/uploads/${selectedImage}`}
+                                    src={`https://kuckuc.rs/uploads/${selectedImage}`}
                                     alt="Selected view"
                                     className="w-full h-full object-contain"
                                 />
                             ) : property.documents && property.documents.length > 0 ? (
                                 <img
-                                    src={`http://localhost:8080/uploads/${property.documents[0].file_path}`}
+                                    src={`https://kuckuc.rs/uploads/${property.documents[0].file_path}`}
                                     alt="Main view"
                                     className="w-full h-full object-contain"
                                 />
@@ -64,7 +64,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose }) =>
                                             ${selectedImage === doc.file_path ? 'border-blue-500' : 'border-transparent'}`}
                                     >
                                         <img
-                                            src={`http://localhost:8080/uploads/${doc.file_path}`}
+                                            src={`https://kuckuc.rs/uploads/${doc.file_path}`}
                                             alt="Thumbnail"
                                             className="w-full h-full object-cover"
                                         />

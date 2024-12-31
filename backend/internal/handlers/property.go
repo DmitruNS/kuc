@@ -152,26 +152,30 @@ func (h *PropertyHandlers) UpdatePropertyStatus(c *gin.Context) {
 
 // ExportProperties godoc
 func (h *PropertyHandlers) ExportProperties(c *gin.Context) {
-    var filter services.PropertyFilter
-    if err := c.ShouldBindQuery(&filter); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-
-    language := c.DefaultQuery("language", "sr")
-    if language != "sr" && language != "en" && language != "ru" {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid language"})
-        return
-    }
-
-    data, err := h.exportService.ExportPropertiesToExcel(filter, language)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-
-    filename := fmt.Sprintf("properties_export_%s.xlsx", time.Now().Format("2006-01-02"))
-    c.Header("Content-Description", "File Transfer")
-    c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-    c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data)
-}
+	var request struct {
+		PropertyIDs []uint `json:"property_ids"`
+	}
+	
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+ 
+	language := c.DefaultQuery("language", "sr")
+	if language != "sr" && language != "en" && language != "ru" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid language"})
+		return
+	}
+ 
+	zipData, err := h.exportService.ExportProperties(services.PropertyFilter{}, language, request.PropertyIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+ 
+	filename := fmt.Sprintf("properties_export_%s.zip", time.Now().Format("2006-01-02"))
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Type", "application/zip")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.Data(http.StatusOK, "application/zip", zipData)
+ }

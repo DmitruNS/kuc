@@ -230,3 +230,34 @@ func (s *PropertyService) UpdateDocumentVisibility(fileID uint, propertyID uint,
 
     return nil
 }
+func (s *PropertyService) GetAllDocuments(propertyID uint) ([]models.Document, error) {
+    var documents []models.Document
+    if err := s.db.Table("property_documents").
+        Where("property_id = ?", propertyID).
+        Find(&documents).Error; err != nil {
+        return nil, err
+    }
+    return documents, nil
+}
+
+func (s *PropertyService) GetPropertyHistory(propertyID uint) ([]models.History, error) {
+    var history []models.History
+    if err := s.db.Where("property_id = ?", propertyID).
+        Order("action_date DESC").
+        Find(&history).Error; err != nil {
+        return nil, err
+    }
+    return history, nil
+}
+func (s *PropertyService) ListPropertiesByIDs(ids []uint, language string) ([]models.Property, error) {
+    var properties []models.Property
+    query := s.db.Preload("Details", "language = ?", language).
+        Preload("Owner").
+        Preload("Documents").
+        Where("id IN ?", ids)
+
+    if err := query.Find(&properties).Error; err != nil {
+        return nil, fmt.Errorf("error fetching properties: %w", err)
+    }
+    return properties, nil
+}

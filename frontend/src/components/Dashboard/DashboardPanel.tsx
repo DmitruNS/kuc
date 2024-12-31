@@ -1,10 +1,9 @@
-// frontend/src/components/Dashboard/DashboardPanel.tsx
-
 import React, { useEffect, useState } from 'react';
 import { Property } from '../../types';
 
 const DashboardPanel = () => {
     const [properties, setProperties] = useState<Property[]>([]);
+    const [selectedProperties, setSelectedProperties] = useState<Set<number>>(new Set());
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -16,7 +15,7 @@ const DashboardPanel = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8080/api/properties', {
+            const response = await fetch('https://kuckuc.rs/api/properties', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -31,10 +30,52 @@ const DashboardPanel = () => {
         }
     };
 
+    const togglePropertySelection = (id: number) => {
+        const newSelected = new Set(selectedProperties);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedProperties(newSelected);
+    };
+
+    const exportSelected = async () => {
+        if (selectedProperties.size === 0) {
+            setError('Please select properties to export');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`https://kuckuc.rs/api/properties/export`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    property_ids: Array.from(selectedProperties)
+                })
+            });
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'properties_export.zip';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            setError('Export failed');
+        }
+    };
+
     const togglePropertyStatus = async (id: number, isActive: boolean) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/api/properties/${id}/status`, {
+            const response = await fetch(`https://kuckuc.rs/api/properties/${id}/status`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -46,29 +87,6 @@ const DashboardPanel = () => {
             fetchProperties();
         } catch (err) {
             setError('Failed to update property status');
-        }
-    };
-    const exportToSheets = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8080/api/properties/export', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to export data');
-
-            // Handle the Excel file
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'properties_export.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (err) {
-            setError('Failed to export data');
         }
     };
 
@@ -84,10 +102,11 @@ const DashboardPanel = () => {
                         Add New Property
                     </button>
                     <button
-                        onClick={exportToSheets}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={exportSelected}
+                        disabled={selectedProperties.size === 0}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
                     >
-                        Export to Sheets
+                        Export Selected ({selectedProperties.size})
                     </button>
                 </div>
             </div>
@@ -105,6 +124,9 @@ const DashboardPanel = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Select
+                                </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Code
                                 </th>
@@ -128,6 +150,14 @@ const DashboardPanel = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {properties.map((property) => (
                                 <tr key={property.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedProperties.has(property.id!)}
+                                            onChange={() => togglePropertySelection(property.id!)}
+                                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                        />
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {property.agent_code}
                                     </td>

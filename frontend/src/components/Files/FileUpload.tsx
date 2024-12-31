@@ -37,7 +37,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
 
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:8080/api/properties/${propertyId}`, {
+                const response = await fetch(`https://kuckuc.rs/api/properties/${propertyId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -111,7 +111,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
             formData.append('file', selectedFiles[0]);
 
             // URL оставляем такой же, так как он соответствует маршруту на сервере
-            const uploadUrl = new URL(`http://localhost:8080/api/properties/${propertyId}/files`);
+            const uploadUrl = new URL(`https://kuckuc.rs/api/properties/${propertyId}/files`);
             uploadUrl.searchParams.append('file_type', fileType);
             uploadUrl.searchParams.append('is_public', String(isPublic));
 
@@ -155,7 +155,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(
-                `http://localhost:8080/api/properties/${propertyId}/files/${fileId}/visibility`,
+                `https://kuckuc.rs/api/properties/${propertyId}/files/${fileId}/visibility`,
                 {
                     method: 'PUT',
                     headers: {
@@ -184,7 +184,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(
-                `http://localhost:8080/api/properties/${propertyId}/files/${fileId}`,
+                `https://kuckuc.rs/api/properties/${propertyId}/files/${fileId}`,
                 {
                     method: 'DELETE',
                     headers: {
