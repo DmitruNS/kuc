@@ -4,6 +4,7 @@ import { Property } from '../../types';
 import PropertyFilters from './PropertyFilters';
 import PropertyDetail from './PropertyDetail';
 import { useTranslation } from '../../localization/translations';
+import { getApiUrl } from '../../config/api';
 
 const PropertyList = () => {
     const [properties, setProperties] = useState<Property[]>([]);
@@ -44,7 +45,7 @@ const PropertyList = () => {
             });
 
             const token = localStorage.getItem('token');
-            const response = await fetch(`https://kuckuc.rs/api/properties?${params}`, {
+            const response = await fetch(getApiUrl(`/api/properties?${params.toString()}`), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -131,11 +132,10 @@ const PropertyList = () => {
 
                         <div className="flex justify-between items-start mb-4">
                             <div>
-                                <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mr-2 ${
-                                    property.deal_type === 'sale'
+                                <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mr-2 ${property.deal_type === 'sale'
                                         ? 'bg-blue-100 text-blue-800'
                                         : 'bg-green-100 text-green-800'
-                                }`}>
+                                    }`}>
                                     {t(property.deal_type)}
                                 </span>
                                 <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -199,7 +199,7 @@ const PropertyList = () => {
             )}
 
             {selectedProperty && (
-                <PropertyDetail 
+                <PropertyDetail
                     property={selectedProperty}
                     onClose={() => setSelectedProperty(null)}
                 />

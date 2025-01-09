@@ -1,6 +1,8 @@
 // frontend/src/components/Files/FileUpload.tsx
-import React, { useState, useEffect, useCallback } from 'react'; 
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../../localization/translations';
+import { getApiUrl } from '../../config/api';
+
 
 interface FileUploadProps {
     propertyId: number;  // Теперь это обязательное поле и всегда number
@@ -23,7 +25,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
     const [isPublic, setIsPublic] = useState(true);
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [showLoader, setShowLoader] = useState(false);
-    
+
     const t = useTranslation('ru');
     const updateUploadedFiles = useCallback((newFile: UploadedFile) => {
         setUploadedFiles(prev => [...prev, newFile]);
@@ -37,7 +39,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
 
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`https://kuckuc.rs/api/properties/${propertyId}`, {
+                const response = await fetch(getApiUrl('/api/properties/${propertyId}'), {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -72,7 +74,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
         if (selectedFiles) {
             loadData();
         }
-    }, [selectedFiles, uploading]); 
+    }, [selectedFiles, uploading]);
 
     // 3. Потом все обработчики событий
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,13 +112,10 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
             const formData = new FormData();
             formData.append('file', selectedFiles[0]);
 
-            // URL оставляем такой же, так как он соответствует маршруту на сервере
-            const uploadUrl = new URL(`https://kuckuc.rs/api/properties/${propertyId}/files`);
+            const uploadUrl = new URL(getApiUrl(`/api/properties/${propertyId}/files`));
             uploadUrl.searchParams.append('file_type', fileType);
             uploadUrl.searchParams.append('is_public', String(isPublic));
-
-            console.log('Uploading to URL:', uploadUrl.toString()); // отладочный вывод
-
+    
             const token = localStorage.getItem('token');
             const response = await fetch(uploadUrl.toString(), {
                 method: 'POST',
@@ -155,7 +154,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(
-                `https://kuckuc.rs/api/properties/${propertyId}/files/${fileId}/visibility`,
+                getApiUrl(`/api/properties/${propertyId}/files/${fileId}/visibility`),
                 {
                     method: 'PUT',
                     headers: {
@@ -184,7 +183,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(
-                `https://kuckuc.rs/api/properties/${propertyId}/files/${fileId}`,
+                getApiUrl(`/api/properties/${propertyId}/files/${fileId}`),
                 {
                     method: 'DELETE',
                     headers: {
@@ -315,6 +314,6 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({ propertyId, onUpload
 
         </div>
     );
-}); 
+});
 
 export default FileUpload;

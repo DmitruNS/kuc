@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Property } from '../../types';
+import { getApiUrl } from '../../config/api';
 
 const DashboardPanel = () => {
     const [properties, setProperties] = useState<Property[]>([]);
@@ -15,7 +16,7 @@ const DashboardPanel = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('https://kuckuc.rs/api/properties', {
+            const response = await fetch(getApiUrl('/api/properties'), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -48,7 +49,7 @@ const DashboardPanel = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`https://kuckuc.rs/api/properties/export`, {
+            const response = await fetch(getApiUrl('/api/properties/export'), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -58,7 +59,7 @@ const DashboardPanel = () => {
                     property_ids: Array.from(selectedProperties)
                 })
             });
-            
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -75,7 +76,7 @@ const DashboardPanel = () => {
     const togglePropertyStatus = async (id: number, isActive: boolean) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`https://kuckuc.rs/api/properties/${id}/status`, {
+            const response = await fetch(getApiUrl('/api/properties/${id}/status'), {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -186,8 +187,8 @@ const DashboardPanel = () => {
                                                 }
                                             }}
                                             className={`px-3 py-1 rounded ${property.is_active
-                                                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                                                    : 'bg-green-100 text-green-600 hover:bg-green-200'
+                                                ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                                : 'bg-green-100 text-green-600 hover:bg-green-200'
                                                 }`}
                                         >
                                             {property.is_active ? 'Deactivate' : 'Activate'}

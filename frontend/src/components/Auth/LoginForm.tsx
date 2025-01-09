@@ -1,6 +1,7 @@
 // frontend/src/components/Auth/LoginForm.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getApiUrl } from '../../config/api';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://kuckuc.rs/api/auth/login', {
+      const response = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

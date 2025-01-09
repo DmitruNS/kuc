@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../localization/translations';
 import FileUpload from '../Files/FileUpload';
+import { getApiUrl } from '../../config/api';
 import {
     Property,
     PropertyType,
@@ -114,7 +115,7 @@ const PropertyForm = () => {
     const fetchProperty = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`https://kuckuc.rs/api/properties/${id}`, {
+            const response = await fetch(getApiUrl('/api/properties/${id}'), {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -126,6 +127,11 @@ const PropertyForm = () => {
             setError('Failed to load property');
         }
     };
+    useEffect(() => {
+        if (isEditing && id) {
+            fetchProperty();
+        }
+    }, [isEditing, id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -134,7 +140,7 @@ const PropertyForm = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(
-                isEditing ? `https://kuckuc.rs/api/properties/${id}` : 'https://kuckuc.rs/api/properties',
+                getApiUrl(isEditing ? `/api/properties/${id}` : '/api/properties'),
                 {
                     method: isEditing ? 'PUT' : 'POST',
                     headers: {

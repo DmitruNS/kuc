@@ -1,3 +1,4 @@
+// backend/internal/services/export.go
 package services
 
 import (
@@ -91,29 +92,28 @@ func (s *ExportService) addPropertyHistory(w *zip.Writer, prop models.Property, 
 	return err
 }
 func (s *ExportService) ExportProperties(filter PropertyFilter, language string, propertyIDs []uint) ([]byte, error) {
-    log.Printf("Starting export for properties: %v", propertyIDs)
-    properties, err := s.propertyService.ListPropertiesByIDs(propertyIDs, language)
-    if err != nil {
-        log.Printf("Error listing properties: %v", err)
-        return nil, err
-    }
+	log.Printf("Starting export for properties: %v", propertyIDs)
+	properties, err := s.propertyService.ListPropertiesByIDs(propertyIDs, language)
+	if err != nil {
+		log.Printf("Error listing properties: %v", err)
+		return nil, err
+	}
 
-    log.Printf("Found %d properties", len(properties))
-    if len(properties) == 0 {
-        return nil, fmt.Errorf("no properties found")
-    }
+	log.Printf("Found %d properties", len(properties))
+	if len(properties) == 0 {
+		return nil, fmt.Errorf("no properties found")
+	}
 
-    buf := new(bytes.Buffer)
-    zipWriter := zip.NewWriter(buf)
+	buf := new(bytes.Buffer)
+	zipWriter := zip.NewWriter(buf)
 
-    log.Printf("Creating Excel file...")
-    excelData, err := s.createExcelFile(properties, language)
-    if err != nil {
-        log.Printf("Excel creation error: %v", err)
-        return nil, err
-    }
-    log.Printf("Excel file created, size: %d bytes", len(excelData))
-
+	log.Printf("Creating Excel file...")
+	excelData, err := s.createExcelFile(properties, language)
+	if err != nil {
+		log.Printf("Excel creation error: %v", err)
+		return nil, err
+	}
+	log.Printf("Excel file created, size: %d bytes", len(excelData))
 
 	excelWriter, err := zipWriter.Create("properties_export.xlsx")
 	if err != nil {

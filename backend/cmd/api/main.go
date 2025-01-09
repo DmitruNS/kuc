@@ -9,12 +9,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -24,18 +24,18 @@ import (
 )
 
 func main() {
-	// Load .env file if exists
-	if err := godotenv.Load(); err != nil {
-		log.Printf("No .env file found or error loading it: %v", err)
+	// Database connection
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		dbPort = "5432"
 	}
 
-	// Database connection
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
+		dbPort,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -57,12 +57,26 @@ func main() {
 	// Initialize router
 	router := gin.Default()
 
+	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+		return fmt.Sprintf("REQUEST: %v | %s | %s | %s | %s\n",
+			param.TimeStamp.Format(time.RFC3339),
+			param.Method,
+			param.Path,
+			param.Request.URL.RawQuery,
+			param.ClientIP,
+		)
+	}))
+
 	// Serve static files
 	router.Static("/uploads", "./uploads")
 
 	// CORS middleware
+	allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+	if len(allowedOrigins) == 0 {
+		allowedOrigins = []string{"*"}
+	}
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -103,8 +117,13 @@ func main() {
 	}
 
 	// Server configuration
+	serverPort := os.Getenv("SERVER_PORT")
+	if serverPort == "" {
+		serverPort = "8080"
+	}
+
 	srv := &http.Server{
-		Addr:    ":" + os.Getenv("SERVER_PORT"),
+		Addr:    ":" + serverPort,
 		Handler: router,
 	}
 

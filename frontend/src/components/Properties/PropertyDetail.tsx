@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Property } from '../../types';
 import { useTranslation } from '../../localization/translations';
+import { getFileUrl } from '../../config/api';
 
 interface PropertyDetailProps {
     property: Property;
@@ -36,13 +37,13 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose }) =>
                         <div className="w-full h-96 bg-gray-100 rounded-lg overflow-hidden mb-4">
                             {selectedImage ? (
                                 <img
-                                    src={`https://kuckuc.rs/uploads/${selectedImage}`}
+                                    src={getFileUrl(selectedImage)}
                                     alt="Selected view"
                                     className="w-full h-full object-contain"
                                 />
                             ) : property.documents && property.documents.length > 0 ? (
                                 <img
-                                    src={`https://kuckuc.rs/uploads/${property.documents[0].file_path}`}
+                                    src={getFileUrl(property.documents[0].file_path)}
                                     alt="Main view"
                                     className="w-full h-full object-contain"
                                 />
@@ -64,7 +65,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose }) =>
                                             ${selectedImage === doc.file_path ? 'border-blue-500' : 'border-transparent'}`}
                                     >
                                         <img
-                                            src={`https://kuckuc.rs/uploads/${doc.file_path}`}
+                                            src={getFileUrl(doc.file_path)}
                                             alt="Thumbnail"
                                             className="w-full h-full object-cover"
                                         />

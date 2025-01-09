@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	//	"os"
+	//      "os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -42,67 +42,67 @@ func NewFileHandlers(fileService *services.FileService, propertyService *service
 // @Security Bearer
 
 func (h *FileHandlers) UploadFile(c *gin.Context) {
-    // Добавим отладочный вывод
-    log.Printf("Received id param: %s", c.Param("id"))
-    
-    propertyID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-    if err != nil || propertyID == 0 {
-        log.Printf("Error parsing property ID: %v, raw value: %s", err, c.Param("id"))
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid property id"})
-        return
-    }
+	// Добавим отладочный вывод
+	log.Printf("Received id param: %s", c.Param("id"))
 
-    // Получаем файл
-    file, err := c.FormFile("file")
-    if err != nil {
-        log.Printf("Error getting file from form: %v", err)
-        c.JSON(http.StatusBadRequest, gin.H{"error": "no file uploaded"})
-        return
-    }
+	propertyID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil || propertyID == 0 {
+		log.Printf("Error parsing property ID: %v, raw value: %s", err, c.Param("id"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid property id"})
+		return
+	}
 
-    // Проверяем тип файла из query параметров
-    fileType := services.FileType(c.Query("file_type"))
-    if fileType != services.FileTypeImage &&
-        fileType != services.FileTypeVideo &&
-        fileType != services.FileTypeDocument {
-        log.Printf("Invalid file type: %s", fileType)
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
-        return
-    }
+	// Получаем файл
+	file, err := c.FormFile("file")
+	if err != nil {
+		log.Printf("Error getting file from form: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no file uploaded"})
+		return
+	}
 
-    // Дополнительная проверка существования property
-    _, err = h.propertyService.GetProperty(uint(propertyID), "en")
-    if err != nil {
-        log.Printf("Property not found: %v", err)
-        c.JSON(http.StatusNotFound, gin.H{"error": "property not found"})
-        return
-    }
+	// Проверяем тип файла из query параметров
+	fileType := services.FileType(c.Query("file_type"))
+	if fileType != services.FileTypeImage &&
+		fileType != services.FileTypeVideo &&
+		fileType != services.FileTypeDocument {
+		log.Printf("Invalid file type: %s", fileType)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
+		return
+	}
 
-    // Сохраняем файл
-    filePath, err := h.fileService.SaveFile(file, fileType, uint(propertyID))
-    if err != nil {
-        log.Printf("Error saving file: %v", err)
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+	// Дополнительная проверка существования property
+	_, err = h.propertyService.GetProperty(uint(propertyID), "en")
+	if err != nil {
+		log.Printf("Property not found: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "property not found"})
+		return
+	}
 
-    // Создаем запись о документе
-    isPublic := c.Query("is_public") == "true"
-    document := models.Document{
-        PropertyID: uint(propertyID),
-        FileType:   string(fileType),
-        FilePath:   filePath,
-        IsPublic:   isPublic,
-    }
+	// Сохраняем файл
+	filePath, err := h.fileService.SaveFile(file, fileType, uint(propertyID))
+	if err != nil {
+		log.Printf("Error saving file: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-    if err := h.propertyService.AddDocument(&document); err != nil {
-        log.Printf("Error adding document to database: %v", err)
-        _ = h.fileService.DeleteFile(filePath) // Очищаем файл при ошибке
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+	// Создаем запись о документе
+	isPublic := c.Query("is_public") == "true"
+	document := models.Document{
+		PropertyID: uint(propertyID),
+		FileType:   string(fileType),
+		FilePath:   filePath,
+		IsPublic:   isPublic,
+	}
 
-    c.JSON(http.StatusOK, document)
+	if err := h.propertyService.AddDocument(&document); err != nil {
+		log.Printf("Error adding document to database: %v", err)
+		_ = h.fileService.DeleteFile(filePath) // Очищаем файл при ошибке
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, document)
 }
 
 // DeleteFile godoc
