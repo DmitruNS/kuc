@@ -56,7 +56,12 @@ func main() {
 
 	// Initialize router
 	router := gin.Default()
-
+	router.GET("/api/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+			"version": "1.0.0",
+		})
+	})
 	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 		return fmt.Sprintf("REQUEST: %v | %s | %s | %s | %s\n",
 			param.TimeStamp.Format(time.RFC3339),

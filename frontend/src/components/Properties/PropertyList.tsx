@@ -4,7 +4,7 @@ import { Property } from '../../types';
 import PropertyFilters from './PropertyFilters';
 import PropertyDetail from './PropertyDetail';
 import { useTranslation } from '../../localization/translations';
-import { getApiUrl } from '../../config/api';
+import { getApiUrl, getFileUrl } from '../../config/api';
 
 const PropertyList = () => {
     const [properties, setProperties] = useState<Property[]>([]);
@@ -119,7 +119,7 @@ const PropertyList = () => {
                         <div className="w-full h-48 mb-4 bg-gray-100 rounded-lg overflow-hidden">
                             {property.documents && property.documents.length > 0 ? (
                                 <img
-                                    src={`https://kuckuc.rs/uploads/${property.documents[0].file_path}`}
+                                    src={getFileUrl(property.documents[0].file_path)}
                                     alt={property.details[0]?.city || 'Property'}
                                     className="w-full h-full object-cover"
                                 />
@@ -133,8 +133,8 @@ const PropertyList = () => {
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mr-2 ${property.deal_type === 'sale'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-green-100 text-green-800'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
                                     }`}>
                                     {t(property.deal_type)}
                                 </span>
@@ -180,6 +180,10 @@ const PropertyList = () => {
                                     <div
                                         key={doc.id}
                                         className="text-sm text-gray-500"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(getFileUrl(doc.file_path), '_blank');
+                                        }}
                                     >
                                         <span className="material-icons text-gray-400">
                                             {doc.file_type === 'image' ? 'photo' : 'description'}
