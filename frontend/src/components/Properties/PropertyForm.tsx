@@ -115,7 +115,7 @@ const PropertyForm = () => {
     const fetchProperty = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(getApiUrl('/api/properties/${id}'), {
+            const response = await fetch(getApiUrl(`/api/properties/${id}`), {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
